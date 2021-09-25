@@ -52,7 +52,7 @@ def methods(method_id: int, db: Session = Depends(get_db)):
     return method
 
 # 4 Updating Method
-@app.put("/methods/{id}", status_code=status.HTTP_200_OK)
+@app.put("/methods/{method_id}", status_code=status.HTTP_200_OK)
 def methods(method_id: int, request: schemas.MethodsUpdate, db: Session = Depends(get_db)):
     exp = db.query(models.Methods).filter(models.Methods.id == method_id).first()
     if not exp:
@@ -65,20 +65,20 @@ def methods(method_id: int, request: schemas.MethodsUpdate, db: Session = Depend
 
 # 5 delete method
 @app.delete("/methods/{method_id}", status_code=status.HTTP_200_OK)
-def methods(id: int, db: Session = Depends(get_db)):
-    det = db.query(models.Methods).filter(models.Methods.id == id).first()
+def methods(method_id: int, db: Session = Depends(get_db)):
+    det = db.query(models.Methods).filter(models.Methods.id == method_id).first()
     if not det:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail='Method not found')
     db.query(models.Methods).filter(models.Methods.id ==
-                                    id).delete(synchronize_session=False)
+                                    method_id).delete(synchronize_session=False)
     db.query(models.Batches).filter(models.Batches.methodId ==
-                                    id).delete(synchronize_session=False)
+                                    method_id).delete(synchronize_session=False)
     db.commit()
     return {"detail": "Method deleted Sucessfully"}
 
 # 6 To Create New Batch For Method
-@app.post("/methods/{id}/batches", status_code=status.HTTP_201_CREATED)
+@app.post("/methods/{method_id}/batches", status_code=status.HTTP_201_CREATED)
 def batches(request: schemas.Batches, method_id: int, db: Session = Depends(get_db)):
     exp = db.query(models.Methods).filter(models.Methods.id == method_id).first()
     if not exp:
@@ -106,7 +106,7 @@ def batches(method_id: int, batch_id: int,db: Session = Depends(get_db)):
     return a
 
 # 8 Updating Batch
-@app.put("/batches/{id}", status_code=status.HTTP_200_OK)
+@app.put("/batches/{batch_id}", status_code=status.HTTP_200_OK)
 def batches(batch_id: int, request: schemas.Batches, db: Session = Depends(get_db)):
     exp = db.query(models.Batches).filter(
         models.Batches.id == batch_id).first()
@@ -123,15 +123,15 @@ def batches(batch_id: int, request: schemas.Batches, db: Session = Depends(get_d
     return db.query(models.Batches).where(models.Batches.id == batch_id).first()
 
 # 9 delete batch
-@app.delete("methods/{method_id}/batches/{batch_id}", status_code=status.HTTP_200_OK)
-def batches(id: int, db: Session = Depends(get_db)):
-    delt = db.query(models.Batches).filter(models.Batches.id == id).first()
+@app.delete("/methods/{method_id}/batches/{batch_id}", status_code=status.HTTP_200_OK)
+def batches(batch_id: int, method_id:int, db: Session = Depends(get_db)):
+    delt = db.query(models.Batches).filter(models.Batches.id == batch_id).first()
     if not delt:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail='Batch not found')
 
     db.query(models.Batches).filter(models.Batches.id ==
-                                    id).delete(synchronize_session=False)
+                                    batch_id).delete(synchronize_session=False)
     db.commit()
     return {"detail": "Batch deleted Sucessfully"}
 
