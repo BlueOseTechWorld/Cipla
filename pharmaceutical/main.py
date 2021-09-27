@@ -26,7 +26,6 @@ app.add_middleware(
 # 1 creating the Method
 @app.post('/methods', status_code=status.HTTP_201_CREATED)
 def methods(request: schemas.Methods, db: Session = Depends(get_db)):
-    print(request)
     new_method = Methods(date=request.date, name=request.name,
                          comment=request.comment, media=request.media,
                          surfactant=request.surfactant, conc=request.conc,
@@ -35,7 +34,6 @@ def methods(request: schemas.Methods, db: Session = Depends(get_db)):
     db.add(new_method)
     db.commit()
     db.refresh(new_method)
-    print(new_method)
     return new_method
 
 # 2 To Show All Methods
@@ -57,7 +55,6 @@ def methods(method_id: int, request: schemas.MethodsUpdate, db: Session = Depend
     exp = db.query(models.Methods).filter(models.Methods.id == method_id).first()
     if not exp:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Method Not Found')
-    print(dict(request))
     db.query(models.Methods).filter(models.Methods.id == method_id).update(dict(request))
     db.commit()
 
@@ -83,14 +80,14 @@ def batches(request: schemas.Batches, method_id: int, db: Session = Depends(get_
     exp = db.query(models.Methods).filter(models.Methods.id == method_id).first()
     if not exp:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Method Not Found')
-    timeIntervals, measurement = convertFromJSON(request.values)
+    timeIntervals, rsd, rtl = convertFromJSON(request.values)
     new_batch = Batches(batchNumber=request.batchNumber, timeIntervals=timeIntervals,
-                        measurement=measurement, methodId=method_id)
+                        RSD=rsd, RTL=rtl, methodId=method_id)
 
     db.add(new_batch)
     db.commit()
     db.refresh(new_batch)
-    return new_batch
+    return convertToJSON([new_batch])
 
 # 7 Fetch All Batches
 @app.get("/batches", status_code=status.HTTP_200_OK)
@@ -101,7 +98,7 @@ def batches(db: Session = Depends(get_db)):
 # 8 Fetch a single batch
 @app.get("/methods/{method_id}/batches/{batch_id}", status_code=HTTP_200_OK)
 def batches(method_id: int, batch_id: int,db: Session = Depends(get_db)):
-    a=db.query(models.Batches).filter(models.Batches.methodId == method_id).filter(models.Batches.id == batch_id).first()
+    a=convertToJSON([db.query(models.Batches).filter(models.Batches.methodId == method_id).filter(models.Batches.id == batch_id).first()])
     print(a)
     return a
 
@@ -113,14 +110,14 @@ def batches(batch_id: int, request: schemas.Batches, db: Session = Depends(get_d
     if not exp:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail='Method Not Found')
-    timeIntervals, measurement = convertFromJSON(request.values)
-    upt_batch = Batches(batchNumber=request.batchNumber, timeIntervals=timeIntervals,
-                        measurement=measurement)
-    amn = db.query(models.Batches).filter(
-        models.Batches.id == batch_id).update({'batchNumber': request.batchNumber, 'timeIntervals': timeIntervals,
-                                              'measurement': measurement})
+    timeIntervals, RSD, RTL = convertFromJSON(request.values)
+    db.query(models.Batches).filter(models.Batches.id == batch_id).update(
+                                            {'batchNumber': request.batchNumber, 
+                                            'timeIntervals': timeIntervals,
+                                            'RSD': RSD,
+                                            'RTL': RTL})
     db.commit()
-    return db.query(models.Batches).where(models.Batches.id == batch_id).first()
+    return convertToJSON([db.query(models.Batches).where(models.Batches.id == batch_id).first()])
 
 # 9 delete batch
 @app.delete("/methods/{method_id}/batches/{batch_id}", status_code=status.HTTP_200_OK)

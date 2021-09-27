@@ -29,7 +29,8 @@ class Batches(Base):
     id = Column(Integer, primary_key=True)
     batchNumber = Column(String)
     timeIntervals = Column(String)
-    measurement = Column(String)
+    RSD = Column(String)
+    RTL = Column(String)
     methodId = Column(Integer, ForeignKey(
         "Methods.id", ondelete='CASCADE'), nullable=False)
 

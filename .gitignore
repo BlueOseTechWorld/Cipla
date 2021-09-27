@@ -1,2 +1,4 @@
 __pycache__
 .vs
+pharmaceutical.db
+pharmaceutical/database.py

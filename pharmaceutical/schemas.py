@@ -19,7 +19,7 @@ class Methods(BaseModel):
 
 class Batches(BaseModel):
     batchNumber: str
-    values: dict
+    values: list[list[int]]
 
 
 class MethodsUpdate(BaseModel):

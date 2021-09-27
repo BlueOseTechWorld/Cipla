@@ -7,8 +7,12 @@ def convertToJSON(a):
     jsons = []
     for i in a:
         json = jsonable_encoder(i)
-        json["values"] = dict(
-            zip(json["timeIntervals"].split(','), json["measurement"].split(',')))
+        json["values"] = []
+        for t, RSD, RTL in zip(json["timeIntervals"].split(','), json["RSD"].split(','), json["RTL"].split(",")):
+            json["values"].append([int(t),int(RSD),int(RTL)])
+        json.pop("timeIntervals")
+        json.pop("RSD")
+        json.pop("RTL")
         jsons.append(json)
     return jsons
 
@@ -24,8 +28,11 @@ def get_db():
 
 def convertFromJSON(values):
     timeIntervals = []
-    measurement = []
-    for k, v in values.items():
-        timeIntervals.append(str(k))
-        measurement.append(str(v))
-    return ",".join(timeIntervals), ",".join(measurement)
+    rsd = []
+    rtl = []
+
+    for i in values:
+        timeIntervals.append(str(i[0]))
+        rsd.append(str(i[1]))
+        rtl.append(str(i[2]))
+    return ",".join(timeIntervals), ",".join(rsd), ",".join(rtl)
